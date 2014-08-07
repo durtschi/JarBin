@@ -2,20 +2,9 @@ package varbin;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -46,7 +35,7 @@ public class VcfSplit {
 	public int snv2Count;
 	public int indel1Count;
 	public int indel2Count;
-	private String inputVcf;
+	public String inputVcf;
 	
 	/**
 	 * Instantiates a new vcf split.

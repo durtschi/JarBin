@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.sourceforge.argparse4j.inf.Namespace;
+
 
 
 public class UnifiedGenotyperCaller {
@@ -15,14 +17,13 @@ public class UnifiedGenotyperCaller {
 	public VariantType genotypeLikelyhoodsModel;
 	public String vcfOut;
 	public String stderrOut;
-	//public static final String defaultMemOptions = " -Xms2048m -Xmx2g ";
-	public static final String defaultMemOptions = "-Xmx2g";
-	public static final String gatkPath = "/Users/jacobdurtschi/Tools/GenomeAnalysisTK.jar";
-	public static final String refPath = "/Users/jacobdurtschi/Reference/Genome/human_g1k_v37.fasta";
+	public String gatkPath; // = "/Users/jacobdurtschi/Tools/GenomeAnalysisTK.jar";
+	public String refPath; // = "/Users/jacobdurtschi/Reference/Genome/human_g1k_v37.fasta";
+	public String threads; // = "4";
+	public String defaultMemOptions; // = "-Xmx2g";
 	public static final String standCallConf = "0.0";
 	public static final String standEmitConf = "0.0";
 	public static final String minIndelFrac = "0.00001";
-	public static final String threads = "4";
 	public static final String downsampleToCoverage = "100000";
 	public static final String output = "/dev/stdout"; //"/Users/jacobdurtschi/Data/jarbin_test/jarbin_test_output.vcf";
 	public static final String maxDeletionFraction = "1.0";
@@ -33,8 +34,12 @@ public class UnifiedGenotyperCaller {
 
 
 
-	public UnifiedGenotyperCaller(String alleleVcf, String bamPath, VariantType genotypeLikelyhoodsModel){
+	public UnifiedGenotyperCaller(String alleleVcf, String bamPath, VariantType genotypeLikelyhoodsModel, Namespace args){
 		
+		this.gatkPath = args.getString("gatk"); // = "/Users/jacobdurtschi/Tools/GenomeAnalysisTK.jar";
+		this.refPath = args.getString("ref"); // = "/Users/jacobdurtschi/Reference/Genome/human_g1k_v37.fasta";
+		this.threads = args.getString("threads"); // = "4";
+		this.defaultMemOptions = args.getString("mem"); // = "-Xmx2g";
 		this.vcfOut = "";
 		this.stderrOut = "";
 		this.alleleVcf = alleleVcf;

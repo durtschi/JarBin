@@ -1,18 +1,12 @@
 package varbin;
 
-import java.awt.List;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Scanner;
-
-import org.apache.commons.lang3.StringUtils;
-
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -89,6 +83,30 @@ public class Varbin {
         		.setDefault("varbin_output.txt")
                 .help("file name for output table" +
                 		" (default = varbin_output.txt)");
+        parser.addArgument("-gatk", "--gatk")
+                .type(String.class)
+        		.dest("gatk")
+        		.setDefault("/Usr/local/bin/GenomeAnalysisTK.jar")
+                .help("path to GenomeAnalysisTK.jar" +
+                		" (default = /Usr/local/bin/GenomeAnalysisTK.jar)");
+        parser.addArgument("-r", "--reference")
+                .type(String.class)
+        		.dest("ref")
+                .help("path to reference sequence");
+        parser.addArgument("--gatk_threads")
+                .type(String.class)
+        		.dest("threads")
+        		.setDefault("4")
+                .help("number of threads used by GATK UnifiedGenotyper" +
+                		" (default = 4)");
+        parser.addArgument("--gatk_mem_options")
+                .type(String.class)
+        		.dest("mem")
+        		.setDefault("Xmx2g")
+                .help("java memory option used by GATK UnifiedGenotyper." +
+                		"Note that the dash (-) is not included to avoid" +
+                		"shell parsing issues." +
+                		" (default = Xmx2g)");
 		try {
 			args= parser.parseArgs(arguments);
 			} catch (ArgumentParserException e) {
@@ -141,7 +159,7 @@ public class Varbin {
 		if (mainVcfParts.snv1Count > 0) {
 			System.out.println("Starting main and background BAM file GATK calls for first alt allele, snv variants ("
 						+ args.get("bam") + ")...");
-			processedSnv1 = new ProcessedCalls(mainVcfParts.snv1Path, VariantType.SNP, (String) args.get("bam"), bamList);
+			processedSnv1 = new ProcessedCalls(mainVcfParts.snv1Path, VariantType.SNP, (String) args.get("bam"), bamList, args);
 		} else {
 			System.out.println("There were no first alt allele, snv variants in the input vcf file");
 		}
@@ -150,7 +168,7 @@ public class Varbin {
 		if (mainVcfParts.snv2Count > 0) {
 			System.out.println("Starting main and background BAM file GATK calls for second alt allele, snv variants ("
 						+ args.get("bam") + ")...");
-			processedSnv2 = new ProcessedCalls(mainVcfParts.snv2Path, VariantType.SNP, (String) args.get("bam"), bamList);
+			processedSnv2 = new ProcessedCalls(mainVcfParts.snv2Path, VariantType.SNP, (String) args.get("bam"), bamList, args);
 		} else {
 			System.out.println("There were no second alt allele, snv variants in the input vcf file");
 		}
@@ -159,7 +177,7 @@ public class Varbin {
 		if (mainVcfParts.indel1Count > 0) {
 			System.out.println("Starting main and background BAM file GATK calls for first alt allele, indel variants ("
 						+ args.get("bam") + ")...");
-			processedIndel1 = new ProcessedCalls(mainVcfParts.indel1Path, VariantType.INDEL, (String) args.get("bam"), bamList);
+			processedIndel1 = new ProcessedCalls(mainVcfParts.indel1Path, VariantType.INDEL, (String) args.get("bam"), bamList, args);
 		} else {
 			System.out.println("There were no first alt allele, indel variants in the input vcf file");
 		}
@@ -168,17 +186,25 @@ public class Varbin {
 		if (mainVcfParts.indel2Count > 0) {
 			System.out.println("Starting main and background BAM file GATK calls for second alt allele, indel variants ("
 						+ args.get("bam") + ")...");
-			processedIndel2 = new ProcessedCalls(mainVcfParts.indel2Path, VariantType.INDEL, (String) args.get("bam"), bamList);
+			processedIndel2 = new ProcessedCalls(mainVcfParts.indel2Path, VariantType.INDEL, (String) args.get("bam"), bamList, args);
 		} else {
 			System.out.println("There were no second alt allele, indel variants in the input vcf file");
 		}
 		
 		//process the main and background variant call data
 		//to get bin results
-		binDataSnv1 = new BinData(processedSnv1);
-		binDataSnv2 = new BinData(processedSnv2);
-		binDataIndel1 = new BinData(processedIndel1);
-		binDataIndel2 = new BinData(processedIndel2);
+		if (mainVcfParts.snv1Count > 0) {
+			binDataSnv1 = new BinData(processedSnv1);
+		}
+		if (mainVcfParts.snv2Count > 0) {
+			binDataSnv2 = new BinData(processedSnv2);
+		}
+		if (mainVcfParts.indel1Count > 0) {
+			binDataIndel1 = new BinData(processedIndel1);
+		}
+		if (mainVcfParts.indel2Count > 0) {
+			binDataIndel2 = new BinData(processedIndel2);
+		}
 		
 		//print each set of results to file 
 		String outPath = args.getString("folder") + "/" + args.getString("out");
@@ -190,50 +216,94 @@ public class Varbin {
 			System.exit(1);
 		}
 		
-		//--for snv alt1--
-		try {
-			outWriter.write("Bin data for snv first alt alleles\n");
-			outWriter.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
-		} catch (IOException e) {
-			System.err.println("ERROR: writing to output table file");
-			e.printStackTrace();
-			System.exit(1);
+		// --for snv alt1--
+		if (mainVcfParts.snv1Count > 0) {
+			try {
+				outWriter.write("Bin data for snv first alt alleles\n");
+				outWriter
+						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			writeBinData(binDataSnv1, outWriter);
+		} else {
+			try {
+				outWriter.write("No snv first alt alleles were processed\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
-		writeBinData(binDataSnv1, outWriter);
 
-		//--for snv alt2--
-		try {
-			outWriter.write("Bin data for snv second alt alleles\n");
-			outWriter.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
-		} catch (IOException e) {
-			System.err.println("ERROR: writing to output table file");
-			e.printStackTrace();
-			System.exit(1);
+		// --for snv alt2--
+		if (mainVcfParts.snv2Count > 0) {
+			try {
+				outWriter.write("Bin data for snv second alt alleles\n");
+				outWriter
+						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			writeBinData(binDataSnv2, outWriter);
+		} else {
+			try {
+				outWriter.write("No snv second alt alleles were processed\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
-		writeBinData(binDataSnv2, outWriter);	
-		
-		//--for indel alt1--
-		try {
-			outWriter.write("Bin data for indel first alt alleles\n");
-			outWriter.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
-		} catch (IOException e) {
-			System.err.println("ERROR: writing to output table file");
-			e.printStackTrace();
-			System.exit(1);
-		}
-		writeBinData(binDataIndel1, outWriter);
-		
-		//--for indel alt2--
-		try {
-			outWriter.write("Bin data for indel second alt alleles\n");
-			outWriter.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
-		} catch (IOException e) {
-			System.err.println("ERROR: writing to output table file");
-			e.printStackTrace();
-			System.exit(1);
-		}
-		writeBinData(binDataIndel2, outWriter);
 
+		// --for indel alt1--
+		if (mainVcfParts.indel1Count > 0) {
+			try {
+				outWriter.write("Bin data for indel first alt alleles\n");
+				outWriter
+						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			writeBinData(binDataIndel1, outWriter);
+		} else {
+			try {
+				outWriter.write("No indel first alt alleles were processed\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
+		}
+
+		// --for indel alt2--
+		if (mainVcfParts.indel2Count > 0) {
+			try {
+				outWriter.write("Bin data for indel second alt alleles\n");
+				outWriter
+						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			writeBinData(binDataIndel2, outWriter);
+		} else {
+			try {
+				outWriter.write("No indel second alt alleles were processed\n");
+			} catch (IOException e) {
+				System.err.println("ERROR: writing to output table file");
+				e.printStackTrace();
+				System.exit(1);
+			}
+		}
+		
 		try {
 			outWriter.close();
 		} catch (IOException e) {
@@ -287,7 +357,6 @@ public class Varbin {
 					+ ((binData.sigma5.get(i) == null) ? "NA" : binData.sigma5.get(i).toString()) + "\t"
 					+ ((binData.sigma6.get(i) == null) ? "NA" : binData.sigma6.get(i).toString()) + "\n");
 			}
-			writer.close();
 		} catch (IOException e) {
 			System.err.println("ERROR: writing to output table file");
 			e.printStackTrace();
