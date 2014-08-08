@@ -228,9 +228,9 @@ public class Varbin {
 			writeBinData(binDataSnv1, outWriter);
 		} else {
 			try {
-				outWriter.write("");
+				outWriter.write("\n");
 				outWriter.write("No snv first alt alleles were processed\n");
-				outWriter.write("");
+				outWriter.write("\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -250,9 +250,9 @@ public class Varbin {
 			writeBinData(binDataSnv2, outWriter);
 		} else {
 			try {
-				outWriter.write("");
+				outWriter.write("\n");
 				outWriter.write("No snv second alt alleles were processed\n");
-				outWriter.write("");
+				outWriter.write("\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -272,9 +272,9 @@ public class Varbin {
 			writeBinData(binDataIndel1, outWriter);
 		} else {
 			try {
-				outWriter.write("");
+				outWriter.write("\n");
 				outWriter.write("No indel first alt alleles were processed\n");
-				outWriter.write("");
+				outWriter.write("\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -294,9 +294,9 @@ public class Varbin {
 			writeBinData(binDataIndel2, outWriter);
 		} else {
 			try {
-				outWriter.write("");
+				outWriter.write("\n");
 				outWriter.write("No indel second alt alleles were processed\n");
-				outWriter.write("");
+				outWriter.write("\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
