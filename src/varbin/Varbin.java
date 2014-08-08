@@ -220,8 +220,6 @@ public class Varbin {
 		if (mainVcfParts.snv1Count > 0) {
 			try {
 				outWriter.write("Bin data for snv first alt alleles\n");
-				outWriter
-						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -230,7 +228,9 @@ public class Varbin {
 			writeBinData(binDataSnv1, outWriter);
 		} else {
 			try {
+				outWriter.write("");
 				outWriter.write("No snv first alt alleles were processed\n");
+				outWriter.write("");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -242,8 +242,6 @@ public class Varbin {
 		if (mainVcfParts.snv2Count > 0) {
 			try {
 				outWriter.write("Bin data for snv second alt alleles\n");
-				outWriter
-						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -252,7 +250,9 @@ public class Varbin {
 			writeBinData(binDataSnv2, outWriter);
 		} else {
 			try {
+				outWriter.write("");
 				outWriter.write("No snv second alt alleles were processed\n");
+				outWriter.write("");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -264,8 +264,6 @@ public class Varbin {
 		if (mainVcfParts.indel1Count > 0) {
 			try {
 				outWriter.write("Bin data for indel first alt alleles\n");
-				outWriter
-						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -274,7 +272,9 @@ public class Varbin {
 			writeBinData(binDataIndel1, outWriter);
 		} else {
 			try {
+				outWriter.write("");
 				outWriter.write("No indel first alt alleles were processed\n");
+				outWriter.write("");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -286,8 +286,6 @@ public class Varbin {
 		if (mainVcfParts.indel2Count > 0) {
 			try {
 				outWriter.write("Bin data for indel second alt alleles\n");
-				outWriter
-						.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -296,7 +294,9 @@ public class Varbin {
 			writeBinData(binDataIndel2, outWriter);
 		} else {
 			try {
+				outWriter.write("");
 				outWriter.write("No indel second alt alleles were processed\n");
+				outWriter.write("");
 			} catch (IOException e) {
 				System.err.println("ERROR: writing to output table file");
 				e.printStackTrace();
@@ -337,25 +337,24 @@ public class Varbin {
 	
 	private static void writeBinData(BinData binData, BufferedWriter writer) {
 		try {
-			writer.write("Bin data for Indel first alt alleles\n");
 			writer.write("chr\tpos\tref\talt\tbin\tvarType\tGT\tfailedFilterCount\tmainPLRD\tbgMedianPLRD\tstdDevPLRD\tbg3sigmaPLRD\tbg4sigmaPLRD\tbg5sigmaPLRD\tbg6sigmaPLRD\n");
 			for (int i = 0 ; i < binData.bin.size() ; i++ ) {
 				//print chr, pos, ref, alt, bin, variantType, GT, mainPLRD, median, 3sigma, 4sigma, 5sigma, 6sigma, 
-			writer.write(((binData.chrom.get(i) == null) ? "NA" : binData.chrom.get(i)) + "\t"
-					+ ((binData.position.get(i) == null) ? "NA" : binData.position.get(i)) + "\t"
-					+ ((binData.ref.get(i) == null) ? "NA" : binData.ref.get(i)) + "\t"
-					+ ((binData.alt.get(i) == null) ? "NA" : binData.alt.get(i)) + "\t"
-					+ ((binData.bin.get(i) == null) ? "NA" : binData.bin.get(i)) + "\t"
-					+ ((binData.variantType.get(i) == null) ? "NA" : binData.variantType.get(i).toString()) + "\t"
-					+ ((binData.genotype.get(i) == null) ? "NA" : binData.genotype.get(i).toString()) + "\t"
-					+ ((binData.failCount.get(i) == null) ? "NA" : binData.failCount.get(i).toString()) + "\t"
-					+ ((binData.mainPLRD.get(i) == null) ? "NA" : binData.mainPLRD.get(i).toString()) + "\t"
-					+ ((binData.median.get(i) == null) ? "NA" : binData.median.get(i).toString()) + "\t"
-					+ ((binData.sigma.get(i) == null) ? "NA" : binData.sigma.get(i).toString()) + "\t"
-					+ ((binData.sigma3.get(i) == null) ? "NA" : binData.sigma3.get(i).toString()) + "\t"
-					+ ((binData.sigma4.get(i) == null) ? "NA" : binData.sigma4.get(i).toString()) + "\t"
-					+ ((binData.sigma5.get(i) == null) ? "NA" : binData.sigma5.get(i).toString()) + "\t"
-					+ ((binData.sigma6.get(i) == null) ? "NA" : binData.sigma6.get(i).toString()) + "\n");
+			writer.write(((binData.chrom.get(i) == null) ? "." : binData.chrom.get(i)) + "\t"
+					+ ((binData.position.get(i) == null) ? "." : binData.position.get(i)) + "\t"
+					+ ((binData.ref.get(i) == null) ? "." : binData.ref.get(i)) + "\t"
+					+ ((binData.alt.get(i) == null) ? "." : binData.alt.get(i)) + "\t"
+					+ ((binData.bin.get(i) == null) ? "." : binData.bin.get(i)) + "\t"
+					+ ((binData.variantType.get(i) == null) ? "." : binData.variantType.get(i).toString()) + "\t"
+					+ ((binData.genotype.get(i) == null) ? "." : binData.genotype.get(i).toString()) + "\t"
+					+ ((binData.failCount.get(i) == null) ? "." : binData.failCount.get(i).toString()) + "\t"
+					+ ((binData.mainPLRD.get(i) == null) ? "." : binData.mainPLRD.get(i).toString()) + "\t"
+					+ ((binData.median.get(i) == null) ? "." : binData.median.get(i).toString()) + "\t"
+					+ ((binData.sigma.get(i) == null) ? "." : binData.sigma.get(i).toString()) + "\t"
+					+ ((binData.sigma3.get(i) == null) ? "." : binData.sigma3.get(i).toString()) + "\t"
+					+ ((binData.sigma4.get(i) == null) ? "." : binData.sigma4.get(i).toString()) + "\t"
+					+ ((binData.sigma5.get(i) == null) ? "." : binData.sigma5.get(i).toString()) + "\t"
+					+ ((binData.sigma6.get(i) == null) ? "." : binData.sigma6.get(i).toString()) + "\n");
 			}
 		} catch (IOException e) {
 			System.err.println("ERROR: writing to output table file");
