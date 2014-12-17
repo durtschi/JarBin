@@ -13,6 +13,6 @@ public class DefaultHashMap<K,V> extends HashMap<K,V> {
         if (this.containsKey(key)) {
             return get(key);
         }
-	        return defaultValue;
+	    return defaultValue;
     }
 }

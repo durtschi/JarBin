@@ -66,8 +66,8 @@ public class BinData {
 			// Gather useful info into lists
 			this.chrom.add(processedCalls.mainVars.vars.get(i).chrom);
 			this.position.add(processedCalls.mainVars.vars.get(i).position);
-			this.ref.add(processedCalls.mainVars.vars.get(i).refList[0]);
-			this.alt.add(processedCalls.mainVars.vars.get(i).altList[0]);
+			this.ref.add(processedCalls.mainVars.vars.get(i).refList.get(0));
+			this.alt.add(processedCalls.mainVars.vars.get(i).altList.get(0));
 			this.variantType.add(processedCalls.mainVars.vars.get(i).varType);
 			this.genotype.add(processedCalls.mainVars.vars.get(i).genotype);
 			this.mainPLRD.add(processedCalls.mainVars.vars.get(i).plrd);

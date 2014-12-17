@@ -1,5 +1,7 @@
 package varbin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 public class VarObj {
@@ -10,8 +12,8 @@ public class VarObj {
 	public String chrom;
 	public String position;
 	public String id;
-	public String[] refList;
-	public String[] altList;
+	public ArrayList<String> refList;
+	public ArrayList<String> altList;
 	public String qual;
 	public String filter;
     public DefaultHashMap<String,String> infoMap;
@@ -23,47 +25,41 @@ public class VarObj {
     public Genotype genotype; // enumerated type: WILDTYPE, HET, HOM, or NOCALL
     public VariantType varType; // enumerated type: SNP or INDEL
     
-    //others
-    public Map<String, Float> snvFilters;
-    public Map<String, Float> indelFilters;
-    
-	public VarObj(String varString){
+	/**
+	 * @param varString
+	 */
 
-        // map snv filter parameters
-        this.snvFilters = new DefaultHashMap<String, Float>();
-        this.snvFilters.put("QualMin", new Float(30.0));
-        this.snvFilters.put("QDmin", new Float(2.0));
-        this.snvFilters.put("MQmin", new Float(40.0));
-        this.snvFilters.put("FSmax", new Float(60.0));
-        this.snvFilters.put("HaplotypeScoreMax", new Float(13.0));
-        this.snvFilters.put("MQRankSumMin", new Float(-12.5));
-        this.snvFilters.put("ReadPosRankSumMin", new Float(-8.0));
-        // map indel filter parameters
-        this.indelFilters = new DefaultHashMap<String, Float>();
-        this.indelFilters.put("QualMin", new Float(30.0));
-        this.indelFilters.put("QDmin", new Float(2.0));
-        this.indelFilters.put("FSmax", new Float(200.0));
-        this.indelFilters.put("ReadPosRankSumMin", new Float(-8.0));
+	public VarObj(){
+	}
         
-        
+//	public VarObj(String varString){
+//		if (varString != null && ! varString.equals("")) {
+//			this.line = varString;
+//		} else {
+//	    	System.err.println("ERROR: null pointer or empty string passed into VarObj constructor");
+//	    	System.exit(1);
+//		}
+//	}
+	
+	public void parse(String varString){
 		String[] infoList;
 		String[] formatList;
 		String[] sampleList;
 	
+		this.line = varString.replaceAll("\n", "");
 		//parse vcf line
-		line = varString.replaceAll("\n", "");
-	    if( ! line.startsWith("#") && ! line.isEmpty() && ! line.equals("")){ //ignore blank, header, or metadata line
-	    	this.varList = line.trim().split("\t");
-	    	this.chrom = varList[0];
-	    	this.position = varList[1];
-	    	this.id = varList[2];
-	    	this.refList = varList[3].split(",");
-	    	this.altList = varList[4].split(",");
-	    	this.qual = varList[5];
-	    	this.filter = varList[6];
-	    	infoList = varList[7].split(";");
-	    	formatList = varList[8].split(":");
-	    	sampleList = varList[9].split(":");
+	    if( ! this.line.startsWith("#") && ! this.line.isEmpty() && ! this.line.equals("")){ //ignore blank, header, or metadata line
+	    	this.varList = this.line.trim().split("\t");
+	    	this.chrom = this.varList[0];
+	    	this.position = this.varList[1];
+	    	this.id = this.varList[2];
+	    	this.refList = new ArrayList<String>(Arrays.asList(varList[3].split(",")));
+	    	this.altList = new ArrayList<String>(Arrays.asList(varList[4].split(",")));
+	    	this.qual = this.varList[5];
+	    	this.filter = this.varList[6];
+	    	infoList = this.varList[7].split(";");
+	    	formatList = this.varList[8].split(":");
+	    	sampleList = this.varList[9].split(":");
 
 	    	//convert info field to map
 	    	this.infoMap = new DefaultHashMap<String,String>();
@@ -77,6 +73,7 @@ public class VarObj {
 	    			System.err.println("ERROR: malformed info field in gatk output vcf file line\n" + line);
 	    			System.exit(1);
 	    		}
+	    		
 	    	}
 
 	    	//convert format/sample fields to map
@@ -86,19 +83,20 @@ public class VarObj {
 	    			this.formatMap.put(formatList[i], sampleList[i]);
 	    		}
 	    	}else{
+	    		
 	    		System.err.println("ERROR: malformed format field in gatk output vcf file line\n" + line);
 	    		System.exit(1);
 	    	}
 	    	
 	    	//determine variant type
-	    	if (refList[0].length() == 1 && altList[0].length() == 1){
+	    	if (refList.get(0).length() == 1 && altList.get(0).length() == 1){
 	    		this.varType = VariantType.SNP;
 	    	}else{
 	    		this.varType = VariantType.INDEL;
 	    	}
 
 	    	//determine genotype (REF, HET, HOM, NOCALL)
-	    	this.genotype = readGenotype(this.formatMap.get("GT"));
+	    	this.genotype = readGenotype(this.formatMap.getDefault("GT", "0/0"));
 
 	    	//calculate likelihood ratio over depth values (plrd) for variant
 	    	this.plrd = plrdCalc(this.formatMap.getDefault("PL", "0,0,0"), this.infoMap.getDefault("DP", "0"));
@@ -109,9 +107,14 @@ public class VarObj {
 			}
 	    
 	    	//determine passFilter 
-	    	this.passFilter = PassFilter(this.snvFilters, this.indelFilters);
+	    	this.passFilter = PassFilter(FilterLimits.snvFilters, FilterLimits.indelFilters);
 	}
 
+	/**
+	 * @param snvFilters
+	 * @param indelFilters
+	 * @return
+	 */
 	private Boolean PassFilter(Map<String, Float> snvFilters, Map<String, Float> indelFilters) {
 		Boolean passFilter = null;
 		
@@ -179,8 +182,8 @@ public class VarObj {
     		String[] plStringArray = plString.split(",");
     		depth = Double.parseDouble(depthString);
     		if (plStringArray.length != 3){
-    			System.err.println("ERROR: malformed format field in gatk output vcf file line\n" + line);
-				System.exit(1);
+    			System.err.println("WARNING: more than 3 PL values in format field in vcf file line\n" + line);
+				//System.exit(1);
     		}
     		plRef = Double.parseDouble(plStringArray[0]);
     		plHet = Double.parseDouble(plStringArray[1]);

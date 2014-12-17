@@ -43,18 +43,6 @@ public class VcfSplit {
 	 * @param vcfInPath the vcf in path
 	 */
 	public VcfSplit(String vcfInPath, String outFolder) {
-		BufferedReader br = null;
-		BufferedWriter snv1Writer = null;
-		BufferedWriter snv2Writer = null;
-		BufferedWriter indel1Writer = null;
-		BufferedWriter indel2Writer = null;
-		String[] lineList;
-		String[] altList;
-		String[] refList;
-		String newVcfLine;
-		String chrom;
-		String position;
-
 		this.inputVcf = vcfInPath;
 		this.snv1Count = 0;
 		this.snv2Count = 0;
@@ -68,6 +56,27 @@ public class VcfSplit {
 		this.snv2Path = outFolder + "/" + "snvAlt2.vcf";
 		this.indel1Path = outFolder + "/" + "indelAlt1.vcf";
 		this.indel2Path = outFolder + "/" + "indelAlt2.vcf";
+	}
+		
+		
+	public void makeCall() {
+	
+		BufferedReader br = null;
+		BufferedWriter snv1Writer = null;
+		BufferedWriter snv2Writer = null;
+		BufferedWriter indel1Writer = null;
+		BufferedWriter indel2Writer = null;
+		String[] lineList;
+		String[] altList;
+		String[] refList;
+		String newVcfLine;
+		String chrom;
+		String position;
+
+		this.snv1Count = 0;
+		this.snv2Count = 0;
+		this.indel1Count = 0;
+		this.indel2Count = 0;
 		
 		try{
 			snv1Writer = new BufferedWriter( new FileWriter( this.snv1Path));
@@ -82,10 +91,10 @@ public class VcfSplit {
 		}
 		
 		try{
-			br = new BufferedReader(new FileReader(vcfInPath));
+			br = new BufferedReader(new FileReader(this.inputVcf));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.err.println("ERROR: accessing/reading input vcf file " + vcfInPath);
+			System.err.println("ERROR: accessing/reading input vcf file " + this.inputVcf);
 			e.printStackTrace();
 			System.exit(1);
 		}

@@ -7,5 +7,7 @@
 	<classpathentry kind="lib" path="lib/argparse4j-head-19Nov2013.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.3.2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math3-3.3.jar"/>
+	<classpathentry kind="lib" path="lib/picard.samtools_1.0.jar"/>
+	<classpathentry kind="lib" path="lib/htsjdk-1.118.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
